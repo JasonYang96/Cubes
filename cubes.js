@@ -48,9 +48,6 @@ window.onload = function init()
 
     colorCube();
 
-    edges.push(vertices[0]);
-    edges.push(vertices[1]);
-
     //configure WebGL
     gl.viewport( 0, 0, canvas.width, canvas.height );
     gl.clearColor( 0.0, 0.0, 0.0, 1.0 );
