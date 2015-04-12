@@ -1,15 +1,18 @@
+//represent gl object
 var gl;
 var NumVertices = 38;
 
 //points holds vertices for triangle strip
 //edges holds vertices for edges
-//theta represents theta variable
 var points = [];
 var edges  = [];
+
+//theta variable
+var thetaLoc;
 var theta = [ 0, 0, 0 ];
 
 //theta, vertex color, and color index variables
-var thetaLoc, vColorLoc;
+var vColorLoc;
 var colorIndex = 0;
 
 //model-view matrix
@@ -22,6 +25,9 @@ var tMatrix;
 var mvMatrix;
 var Matrix;
 var MatrixLoc;
+
+//x,y,z coord for camera movement
+var coord = [ 0, 0, -50 ];
 
 //vertex vectors
 var vertices = [
@@ -96,12 +102,22 @@ window.onload = function init()
     gl.enableVertexAttribArray( vPosition );
 
     //event listener
-    window.onkeypress = function(event) {
-        var key = String.fromCharCode(event.keyCode);
+    window.onkeydown = function(event) {
+        var key = event.keyCode > 48 ? String.fromCharCode(event.keyCode) : event.keyCode;
         switch(key) {
-          case 'c':
-            colorIndex = (colorIndex + 1) % vertexColors.length;
-            break;
+            case 'c':
+                colorIndex = (colorIndex + 1) % vertexColors.length;
+                break;
+            case 37: //left arrow
+                break;
+            case 38: //up arrow
+                coord[1] -=.25;
+                break;
+            case 39: //right arrow
+                break;
+            case 40: //down arrow
+                coord[1] +=.25;
+                break;
         }
     };
 
@@ -128,7 +144,7 @@ function render() {
 
     //apply model-view matrix
     pMatrix = perspective(fovy, aspect, near, far);
-    tMatrix = translate( 0, 0, -50);
+    tMatrix = translate( coord[0], coord[1], coord[2]);
     mvMatrix = mult(pMatrix, tMatrix);
 
     for (var i = 0; i < cubes.length; ++i) {
@@ -139,7 +155,7 @@ function render() {
         gl.uniform4fv(vColorLoc, vertexColors[(colorIndex + i) % cubes.length]);
         gl.drawArrays( gl.TRIANGLE_STRIP, 0, 14 );
 
-        //set up color of edges and draw
+        //set up color of edges and ccccdraw
         gl.uniform4fv(vColorLoc, [1,1,1,1]);
         gl.drawArrays( gl.LINES, 14, 24);
     }
