@@ -29,18 +29,18 @@ var MatrixLoc;
 
 //x,y,z coord, and heading variable for camera movement
 var coord = [ 0, 0, -50 ];
-var heading = 0;
+var headingAngle = 0;
 
 //vertex vectors
 var vertices = [
-    vec3( -0.5, -0.5,  0.5 ),
-    vec3( -0.5,  0.5,  0.5 ),
-    vec3(  0.5,  0.5,  0.5 ),
-    vec3(  0.5, -0.5,  0.5 ),
-    vec3( -0.5, -0.5, -0.5 ),
-    vec3( -0.5,  0.5, -0.5 ),
-    vec3(  0.5,  0.5, -0.5 ),
-    vec3(  0.5, -0.5, -0.5 ),
+    vec3( -1.0, -1.0,  1.0 ),
+    vec3( -1.0,  1.0,  1.0 ),
+    vec3(  1.0,  1.0,  1.0 ),
+    vec3(  1.0, -1.0,  1.0 ),
+    vec3( -1.0, -1.0, -1.0 ),
+    vec3( -1.0,  1.0, -1.0 ),
+    vec3(  1.0,  1.0, -1.0 ),
+    vec3(  1.0, -1.0, -1.0 ),
 ];
 
 //color vectors
@@ -106,28 +106,41 @@ window.onload = function init()
     //event listener
     window.onkeydown = function(event) {
         var key = event.keyCode > 48 ? String.fromCharCode(event.keyCode) : event.keyCode;
+        var radian = radians(headingAngle);
         switch(key) {
             case 'C':
                 colorIndex = (colorIndex + 1) % vertexColors.length;
                 break;
             case 'I':
-                coord[2] +=.25;
+                coord[0] -=(.25 * Math.sin(radian));
+                coord[2] +=(.25 * Math.cos(radian));
                 break;
             case 'J':
-                coord[0] +=.25;
+                coord[0] +=(.25 * Math.cos(radian));
+                coord[2] +=(.25 * Math.sin(radian));
                 break;
             case 'K':
-                coord[0] -=.25;
+                coord[0] -=(.25 * Math.cos(radian));
+                coord[2] -=(.25 * Math.sin(radian));
                 break;
             case 'M':
-                coord[2] -=.25;
-                break;            
+                coord[0] +=(.25 * Math.sin(radian));
+                coord[2] -=(.25 * Math.cos(radian));
+                break;         
+            case 'R':
+                coord[0] = 0;
+                coord[1] = 0;
+                coord[2] = -50;
+                headingAngle = 0;
+                break;   
             case 37: //left arrow
+                headingAngle -=1;
                 break;
             case 38: //up arrow
                 coord[1] -=.25;
                 break;
             case 39: //right arrow
+                headingAngle +=1;
                 break;
             case 40: //down arrow
                 coord[1] +=.25;
@@ -153,12 +166,12 @@ function render() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
     
     //rotate by theta and send to shader
-    theta[1] += 6.0;
+    theta[0] += 6.0;
     gl.uniform3fv(thetaLoc, theta);
 
     //apply model-view matrix
     pMatrix = perspective(fovy, aspect, near, far);
-    tMatrix = translate( coord[0], coord[1], coord[2]);
+    tMatrix = mult(rotate(headingAngle, [ 0, 1, 0 ]), translate( coord[0], coord[1], coord[2]));
     mvMatrix = mult(pMatrix, tMatrix);
 
     for (var i = 0; i < cubes.length; ++i) {
