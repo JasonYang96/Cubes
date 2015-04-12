@@ -1,6 +1,5 @@
 //represent gl object
 var gl;
-var NumVertices = 38;
 
 //points holds vertices for triangle strip
 //edges holds vertices for edges
@@ -11,23 +10,26 @@ var edges  = [];
 var thetaLoc;
 var theta = [ 0, 0, 0 ];
 
-//theta, vertex color, and color index variables
+//vertex color, and color index variables
 var vColorLoc;
 var colorIndex = 0;
 
-//model-view matrix
+//perspective matrix variables
 var pMatrix;
 var fovy = 45;
 var aspect;
 var near = 2;
 var far = 200;
+
+//translation matrix, model-view matrix
 var tMatrix;
 var mvMatrix;
 var Matrix;
 var MatrixLoc;
 
-//x,y,z coord for camera movement
+//x,y,z coord, and heading variable for camera movement
 var coord = [ 0, 0, -50 ];
+var heading = 0;
 
 //vertex vectors
 var vertices = [
@@ -105,9 +107,21 @@ window.onload = function init()
     window.onkeydown = function(event) {
         var key = event.keyCode > 48 ? String.fromCharCode(event.keyCode) : event.keyCode;
         switch(key) {
-            case 'c':
+            case 'C':
                 colorIndex = (colorIndex + 1) % vertexColors.length;
                 break;
+            case 'I':
+                coord[2] +=.25;
+                break;
+            case 'J':
+                coord[0] +=.25;
+                break;
+            case 'K':
+                coord[0] -=.25;
+                break;
+            case 'M':
+                coord[2] -=.25;
+                break;            
             case 37: //left arrow
                 break;
             case 38: //up arrow
