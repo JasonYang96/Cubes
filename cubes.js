@@ -181,9 +181,7 @@ window.onload = function init()
                 break;
         }
     }
-
-
-
+    
     render();
 };
 
