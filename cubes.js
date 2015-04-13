@@ -43,7 +43,7 @@ var vertices = [
     vec3(  1.0, -1.0, -1.0 ),
 ];
 
-//color vectors
+//color array
 var vertexColors = [
     [ 0.0, 0.0, 0.0, 1.0 ],  // black
     [ 0.0, 0.0, 1.0, 1.0 ],  // blue
@@ -67,6 +67,15 @@ var cubes = [
     translate(-10, -10, -10),
 ];
 
+//array of vertex vectors for crosshair
+var crosshair = [
+    vec3( -0.25, 0, 0),
+    vec3( 0.25, 0, 0),
+    vec3( 0, -.25, 0),
+    vec3( 0, 0.25, 0),
+];
+var crosshairON;
+
 window.onload = function init()
 {
 	//initialize canvas and webGL
@@ -78,6 +87,10 @@ window.onload = function init()
 
     //create a cube
     createCube();
+
+    for ( var i = 0; i < crosshair.length; ++i) {
+        points.push(crosshair[i]);
+    }
 
     //configure WebGL
     gl.viewport( 0, 0, canvas.width, canvas.height );
@@ -152,8 +165,24 @@ window.onload = function init()
             case 40: //down arrow
                 coord[1] +=.25;
                 break;
+            default:
+                break;
         }
     };
+
+    //event listener for '+'' key
+    window.onkeypress = function(event) {
+        var key = String.fromCharCode(event.keyCode);
+        switch(key) {
+            case '+':
+                crosshairON = !crosshairON;
+                break;
+            default:
+                break;
+        }
+    }
+
+
 
     render();
 };
@@ -200,6 +229,15 @@ function render() {
         //set up color of edges and draw
         gl.uniform4fv(vColorLoc, [1,1,1,1]);
         gl.drawArrays( gl.LINES, 14, 24);
+    }
+
+    if(crosshairON)
+    {
+        gl.uniform1f(thetaLoc,0);
+        mvMatrix = ortho(-1.0 * aspect, aspect, -1.0, 1.0, 0.0, 1.0);
+        gl.uniformMatrix4fv(MatrixLoc, false, flatten(mvMatrix));
+        gl.uniform4fv(vColorLoc, [1,1,1,1]);
+        gl.drawArrays( gl.LINES, 38, 4);
     }
 
     //call render on browser refresh
