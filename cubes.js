@@ -8,7 +8,7 @@ var edges  = [];
 
 //theta variable
 var thetaLoc;
-var theta = [ 0, 0, 0 ];
+var theta = 0.0;
 
 //vertex color, and color index variables
 var vColorLoc;
@@ -16,19 +16,19 @@ var colorIndex = 0;
 
 //perspective matrix variables
 var pMatrix;
-var fovy = 45;
+var fovx = 45.0;
 var aspect;
-var near = 2;
+var near = 0.1;
 var far = 200;
 
-//translation matrix, model-view matrix
+//translation matrix, model-view matrix, and scale matrix
 var tMatrix;
 var mvMatrix;
 var Matrix;
 var MatrixLoc;
 
 //x,y,z coord, and heading variable for camera movement
-var coord = [ 0, 0, -50 ];
+var coord = [ 0, 0, -75 ];
 var headingAngle = 0;
 
 //vertex vectors
@@ -48,14 +48,14 @@ var vertexColors = [
     [ 0.0, 0.0, 0.0, 1.0 ],  // black
     [ 0.0, 0.0, 1.0, 1.0 ],  // blue
     [ 0.0, 1.0, 0.0, 1.0 ],  // green
-    [ 0.0, 1.0, 1.0, 1.0 ],   // cyan
+    [ 0.0, 1.0, 1.0, 1.0 ],  // cyan
     [ 1.0, 0.0, 0.0, 1.0 ],  // red
     [ 1.0, 0.0, 1.0, 1.0 ],  // magenta
     [ 1.0, 1.0, 0.0, 1.0 ],  // yellow
-    [ 1.0, 1.0, 1.0, 1.0 ],  // white
+    [ 0.5, 0.5, 0.5, 1.0 ],  // grey
 ];
 
-//array of matrices to create 8 cubes
+//array of matrices to instance 8 cubes
 var cubes = [
     translate( 10,  10,  10),
     translate( 10,  10, -10),
@@ -77,7 +77,7 @@ window.onload = function init()
     if ( !gl ) { alert( "WebG isn't available" ); }
 
     //create a cube
-    colorCube();
+    createCube();
 
     //configure WebGL
     gl.viewport( 0, 0, canvas.width, canvas.height );
@@ -88,7 +88,7 @@ window.onload = function init()
     var program = initShaders( gl, "vertex-shader", "fragment-shader" );
     gl.useProgram( program );
 
-    // get variables from HTML
+    // get variables from shader
     vColorLoc = gl.getUniformLocation( program, "vColor" );
     thetaLoc = gl.getUniformLocation( program, "theta");
     MatrixLoc = gl.getUniformLocation( program, "Matrix");
@@ -126,12 +126,19 @@ window.onload = function init()
             case 'M':
                 coord[0] +=(.25 * Math.sin(radian));
                 coord[2] -=(.25 * Math.cos(radian));
-                break;         
+                break;
+            case 'N':
+                fovx -= 1;
+                break;
+            case 'W':
+                fovx += 1;
+                break;        
             case 'R':
                 coord[0] = 0;
                 coord[1] = 0;
-                coord[2] = -50;
+                coord[2] = -75;
                 headingAngle = 0;
+                fovx = 45;
                 break;   
             case 37: //left arrow
                 headingAngle -=1;
@@ -151,7 +158,14 @@ window.onload = function init()
     render();
 };
 
-function colorCube()
+//returns fovy based on fovx
+function fovy()
+{
+    return ( 2 * Math.atan(Math.tan(radians(fovx)/2) / aspect) * 180 / Math.PI);
+}
+
+//push vertices for one cube at origin
+function createCube()
 {   
     var indices = [ 0, 4, 7, 6, 3, 2, 1, 6, 5, 4, 1, 0, 3, 7, //vertices for faces 
                     0, 1, 2, 3, 1, 2, 6, 7, 1, 5, 2, 6, 5, 6, 4, 7, 0, 4, 3, 7, 0, 3, 4, 5]; //vertices for edges
@@ -166,14 +180,15 @@ function render() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
     
     //rotate by theta and send to shader
-    theta[0] += 6.0;
-    gl.uniform3fv(thetaLoc, theta);
+    theta += 6.0;
+    gl.uniform1f(thetaLoc, theta);
 
     //apply model-view matrix
-    pMatrix = perspective(fovy, aspect, near, far);
+    pMatrix = perspective(fovy(), aspect, near, far);
     tMatrix = mult(rotate(headingAngle, [ 0, 1, 0 ]), translate( coord[0], coord[1], coord[2]));
     mvMatrix = mult(pMatrix, tMatrix);
 
+    //instance 8 cubes with different colors
     for (var i = 0; i < cubes.length; ++i) {
         Matrix = mult(mvMatrix, cubes[i]);
         gl.uniformMatrix4fv(MatrixLoc, false, flatten(Matrix));
@@ -182,7 +197,7 @@ function render() {
         gl.uniform4fv(vColorLoc, vertexColors[(colorIndex + i) % cubes.length]);
         gl.drawArrays( gl.TRIANGLE_STRIP, 0, 14 );
 
-        //set up color of edges and ccccdraw
+        //set up color of edges and draw
         gl.uniform4fv(vColorLoc, [1,1,1,1]);
         gl.drawArrays( gl.LINES, 14, 24);
     }
